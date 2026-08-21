@@ -1,12 +1,15 @@
 import React from 'react';
-import { LabelSize } from '../types';
+import { LabelSize, LabelTemplate } from '../types';
 
 interface TopBarProps {
   activeSize: LabelSize;
   onSizeChange: (size: LabelSize) => void;
+  activeTemplate: LabelTemplate;
+  onTemplateChange: (template: LabelTemplate) => void;
+  onPrint: () => void;
 }
 
-export function TopBar({ activeSize, onSizeChange }: TopBarProps) {
+export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateChange, onPrint }: TopBarProps) {
   return (
     <div className="flex flex-col w-full border-b border-gray-200 bg-white z-20 shadow-sm relative">
       {/* Header */}
@@ -19,28 +22,49 @@ export function TopBar({ activeSize, onSizeChange }: TopBarProps) {
           <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
             Export
           </button>
-          <button className="px-5 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 transition-colors shadow-sm">
+          <button onClick={onPrint} className="px-5 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 transition-colors shadow-sm">
             Print Label
           </button>
         </div>
       </div>
       {/* Sub-header */}
-      <div className="flex items-center px-6 py-3 bg-gray-50/50">
-        <span className="text-sm font-medium text-gray-600 mr-4">Select Label Size:</span>
-        <div className="flex bg-gray-200/60 p-1 rounded-lg">
-          {(['4x4', '2x2', '4x6', '4x2'] as LabelSize[]).map((size) => (
-            <button
-              key={size}
-              onClick={() => onSizeChange(size)}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                activeSize === size
-                  ? 'bg-white text-black shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
+      <div className="flex items-center px-6 py-3 bg-gray-50/50 justify-between">
+        <div className="flex items-center">
+          <span className="text-sm font-medium text-gray-600 mr-4">Select Label Size:</span>
+          <div className="flex bg-gray-200/60 p-1 rounded-lg">
+            {(['4x4', '2x2', '4x6', '4x2'] as LabelSize[]).map((size) => (
+              <button
+                key={size}
+                onClick={() => onSizeChange(size)}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  activeSize === size
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <span className="text-sm font-medium text-gray-600 mr-4">Template:</span>
+          <div className="flex bg-gray-200/60 p-1 rounded-lg">
+            {(['standard', 'tabular'] as LabelTemplate[]).map((tmpl) => (
+              <button
+                key={tmpl}
+                onClick={() => onTemplateChange(tmpl)}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all capitalize ${
+                  activeTemplate === tmpl
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {tmpl}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
