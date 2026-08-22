@@ -20,7 +20,7 @@ const INITIAL_STANDARD_FIELDS: LabelField[] = [
 ];
 
 const INITIAL_TABULAR_FIELDS: LabelField[] = [
-  { id: 't1', label: 'Header Title', value: 'NEEDLE PUNCH FABRIC', reorderable: true },
+  { id: 't1', label: 'Header Title', value: 'NEEDLE PUNCH FABRIC', reorderable: true, styles: { fullWidth: true } },
   { id: 't2', label: 'product', value: 'KT EXPORT', reorderable: true },
   { id: 't3', label: 'ROLL no', value: 'E01080-26-A-01', reorderable: true },
   { id: 't4', label: 'GSM', value: '120', reorderable: true },
@@ -49,11 +49,33 @@ export default function App() {
     }));
   };
 
+  const handleUpdateAllStyles = (styleUpdates: Partial<LabelStyle>) => {
+    setCurrentFields(currentFields.map(f => ({ ...f, styles: { ...f.styles, ...styleUpdates } })));
+  };
+
+  const handleDeleteField = (id: string) => {
+    setCurrentFields(currentFields.filter(f => f.id !== id));
+    if (selectedFieldId === id) {
+      setSelectedFieldId(null);
+    }
+  };
+
   const handleAddToolElement = (type: string) => {
+    if (type === 'Templates') {
+      setActiveTemplate(activeTemplate === 'standard' ? 'tabular' : 'standard');
+      return;
+    }
+
+    const fieldType = type === 'Text' ? 'text' :
+                      type === 'Shapes' ? 'shape' :
+                      type === 'Images' ? 'image' :
+                      type === 'Barcodes' ? 'barcode' : 'text';
+
     const newField: LabelField = {
       id: `tool-${Date.now()}`,
       label: `New ${type}`,
-      value: `Custom ${type}`,
+      value: type === 'Text' ? `Custom Text` : type === 'Barcodes' ? '123456789' : '',
+      type: fieldType,
       reorderable: true,
       styles: { fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center' }
     };
@@ -78,7 +100,12 @@ export default function App() {
           <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center">
             {/* Left Floating Card */}
             <div className="z-10 flex-shrink-0 ml-4 print:hidden">
-              <FieldConfigCard fields={currentFields} onUpdateFields={setCurrentFields} />
+              <FieldConfigCard 
+                fields={currentFields} 
+                onUpdateFields={setCurrentFields}
+                selectedFieldId={selectedFieldId}
+                onSelectField={setSelectedFieldId}
+              />
             </div>
             
             {/* Center Canvas Area */}
@@ -94,7 +121,13 @@ export default function App() {
           </div>
         </div>
 
-        <PropertiesPanel activeField={activeField} onUpdateStyle={handleUpdateStyle} />
+        <PropertiesPanel 
+          activeField={activeField} 
+          onUpdateStyle={handleUpdateStyle}
+          onUpdateAllStyles={handleUpdateAllStyles}
+          onDeleteField={handleDeleteField}
+          activeTemplate={activeTemplate}
+        />
       </div>
     </div>
   );
