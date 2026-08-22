@@ -1,5 +1,5 @@
 export type LabelSize = '4x4' | '2x2' | '4x6' | '4x2';
-export type LabelTemplate = 'standard' | 'tabular';
+export type LabelTemplate = 'standard' | 'tabular' | 'roll-data' | 'blank';
 
 export interface LabelStyle {
   fontFamily?: string;
@@ -10,7 +10,11 @@ export interface LabelStyle {
   borderRadius?: number;
   fullWidth?: boolean;
   columnWidth?: number;
+  rightColumnWidth?: number;
   rowHeight?: number;
+  showColon?: boolean;
+  colonWidth?: number;
+  bold?: boolean;
 }
 
 export interface LabelField {

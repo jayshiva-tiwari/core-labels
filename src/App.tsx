@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import { TopBar } from './components/TopBar';
 import { LeftTools } from './components/LeftTools';
 import { PropertiesPanel } from './components/PropertiesPanel';
@@ -20,12 +21,30 @@ const INITIAL_STANDARD_FIELDS: LabelField[] = [
 ];
 
 const INITIAL_TABULAR_FIELDS: LabelField[] = [
-  { id: 't1', label: 'Header Title', value: 'NEEDLE PUNCH FABRIC', reorderable: true, styles: { fullWidth: true } },
-  { id: 't2', label: 'product', value: 'KT EXPORT', reorderable: true },
-  { id: 't3', label: 'ROLL no', value: 'E01080-26-A-01', reorderable: true },
-  { id: 't4', label: 'GSM', value: '120', reorderable: true },
-  { id: 't5', label: 'meter', value: '100', reorderable: true },
-  { id: 't6', label: 'WEIGHT', value: '50', reorderable: true },
+  { id: 't1', label: 'Product', value: 'PP Non-woven Needle punch\nFabric Uncalendared', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't2', label: 'Colour', value: '902 GREY', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't3', label: 'Lot no', value: 'NP26/08/02', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't4', label: 'Roll no', value: 'E01080-26-H-19', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't5', label: 'width', value: '4.30 M', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't6', label: 'GSM', value: '140.0', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't7', label: 'Length', value: '200', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't8', label: 'Weight', value: '119', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't9', label: 'Manufacturing Date', value: '03-08-2026', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+];
+
+const INITIAL_ROLL_DATA_FIELDS: LabelField[] = [
+  { id: 'rd1', label: '', value: 'ROLL DATA', reorderable: true, styles: { fullWidth: true, textAlign: 'center', bold: true, fontSize: 16 } },
+  { id: 'rd2', label: 'Product code', value: 'FLOOR PRODUCTION', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd3', label: 'Roll No', value: 'sample-11', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd4', label: 'COLOUR', value: 'PET-GREY', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd5', label: 'WIDHT (M)', value: '1.4', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd6', label: 'LENGTH-MTR', value: '346', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd7', label: 'GSM-RAG', value: '120 TO 140', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd8', label: 'Sq-MTR', value: '484.4', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd9', label: 'AVG GSM', value: '140.0', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd10', label: 'TARE WEIGTH', value: '3.5', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd11', label: 'NET WEIGHT', value: '58', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd12', label: 'GR. WEIGHT', value: '61.5', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
 ];
 
 export default function App() {
@@ -34,10 +53,30 @@ export default function App() {
   
   const [standardFields, setStandardFields] = useState<LabelField[]>(INITIAL_STANDARD_FIELDS);
   const [tabularFields, setTabularFields] = useState<LabelField[]>(INITIAL_TABULAR_FIELDS);
+  const [rollDataFields, setRollDataFields] = useState<LabelField[]>(INITIAL_ROLL_DATA_FIELDS);
+  const [blankFields, setBlankFields] = useState<LabelField[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
 
-  const currentFields = activeTemplate === 'standard' ? standardFields : tabularFields;
-  const setCurrentFields = activeTemplate === 'standard' ? setStandardFields : setTabularFields;
+  useEffect(() => {
+    const saved = localStorage.getItem('labelConfig');
+    if (saved) {
+      try {
+        const config = JSON.parse(saved);
+        if (config.activeSize) setActiveSize(config.activeSize);
+        if (config.activeTemplate) setActiveTemplate(config.activeTemplate);
+        if (config.standardFields) setStandardFields(config.standardFields);
+        if (config.tabularFields) setTabularFields(config.tabularFields);
+        if (config.rollDataFields) setRollDataFields(config.rollDataFields);
+        if (config.blankFields) setBlankFields(config.blankFields);
+      } catch (e) {
+        console.error('Failed to load saved config', e);
+      }
+    }
+  }, []);
+
+
+  const currentFields = activeTemplate === 'standard' ? standardFields : activeTemplate === 'tabular' ? tabularFields : activeTemplate === 'roll-data' ? rollDataFields : blankFields;
+  const setCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
   const activeField = currentFields.find(f => f.id === selectedFieldId);
 
   const handleUpdateStyle = (id: string, styleUpdates: Partial<LabelStyle>) => {
@@ -62,7 +101,7 @@ export default function App() {
 
   const handleAddToolElement = (type: string) => {
     if (type === 'Templates') {
-      setActiveTemplate(activeTemplate === 'standard' ? 'tabular' : 'standard');
+      setActiveTemplate(activeTemplate === 'standard' ? 'tabular' : activeTemplate === 'tabular' ? 'roll-data' : activeTemplate === 'roll-data' ? 'blank' : 'standard');
       return;
     }
 
@@ -83,6 +122,56 @@ export default function App() {
     setSelectedFieldId(newField.id);
   };
 
+  
+  const handleSave = () => {
+    try {
+      const config = {
+        activeSize,
+        activeTemplate,
+        standardFields,
+        tabularFields,
+        rollDataFields,
+        blankFields
+      };
+      localStorage.setItem('labelConfig', JSON.stringify(config));
+      alert('Label configuration saved successfully!');
+    } catch (error) {
+      console.error('Error saving config:', error);
+      alert('Failed to save configuration.');
+    }
+  };
+
+  const handleExport = async () => {
+    const element = document.getElementById('print-label');
+    if (!element) {
+      alert('Label element not found for export.');
+      return;
+    }
+    
+    // Temporarily remove shadow for export
+    const originalBoxShadow = element.style.boxShadow;
+    element.style.boxShadow = 'none';
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2, // High resolution
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const link = document.createElement('a');
+      link.download = `label-export-${activeSize}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export image.');
+    } finally {
+      // Restore shadow
+      element.style.boxShadow = originalBoxShadow;
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F3F4F6] text-gray-900 font-sans overflow-hidden">
       <TopBar 
@@ -91,6 +180,8 @@ export default function App() {
         activeTemplate={activeTemplate}
         onTemplateChange={setActiveTemplate}
         onPrint={() => window.print()}
+        onSave={handleSave}
+        onExport={handleExport}
       />
       
       <div className="flex flex-1 overflow-hidden relative">

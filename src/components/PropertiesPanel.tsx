@@ -53,7 +53,18 @@ export function PropertiesPanel({ activeField, onUpdateStyle, onUpdateAllStyles,
 
           {/* Size & Color */}
           <div className="space-y-3">
-            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Appearance</label>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Appearance</label>
+              <label className="flex items-center space-x-1.5 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={!!styles.bold}
+                  onChange={(e) => update('bold', e.target.checked)}
+                  className="w-3.5 h-3.5 text-black border-gray-300 rounded focus:ring-black cursor-pointer"
+                />
+                <span className="text-[10px] text-gray-500 group-hover:text-black font-semibold uppercase tracking-wider transition-colors">Bold</span>
+              </label>
+            </div>
             <div className="flex items-center space-x-3">
               <input
                 type="color"
@@ -126,7 +137,7 @@ export function PropertiesPanel({ activeField, onUpdateStyle, onUpdateAllStyles,
           </div>
 
           {/* Table Layout */}
-          {activeTemplate === 'tabular' && (
+          {(activeTemplate === 'tabular' || activeTemplate === 'roll-data') && (
             <div className="space-y-3 border-t border-gray-100 pt-5 mt-2">
               <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Table Row Layout</label>
               <label className="flex items-center space-x-2 cursor-pointer group">
@@ -178,24 +189,81 @@ export function PropertiesPanel({ activeField, onUpdateStyle, onUpdateAllStyles,
               </div>
 
               {!styles.fullWidth && (
-                <div className="pt-3 mt-3 border-t border-gray-100">
-                  <span className="text-[10px] text-gray-400 block mb-2">LEFT COLUMN WIDTH (%)</span>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <input 
-                      type="range" 
-                      className="w-full accent-black" 
-                      min="10" max="90" 
-                      value={styles.columnWidth || 50} 
-                      onChange={(e) => update('columnWidth', parseInt(e.target.value))} 
-                    />
-                    <span className="text-xs text-gray-500 w-8 text-right">{styles.columnWidth || 50}%</span>
+                <div className="pt-3 mt-3 border-t border-gray-100 space-y-4">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block mb-2">LEFT COLUMN WIDTH (%)</span>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <input 
+                        type="range" 
+                        className="w-full accent-black" 
+                        min="10" max="90" 
+                        value={styles.columnWidth || 50} 
+                        onChange={(e) => update('columnWidth', parseInt(e.target.value))} 
+                      />
+                      <span className="text-xs text-gray-500 w-8 text-right">{styles.columnWidth || 50}%</span>
+                    </div>
+                    {onUpdateAllStyles && (
+                      <button 
+                        onClick={() => onUpdateAllStyles({ columnWidth: styles.columnWidth || 50 })}
+                        className="text-[10px] text-gray-500 hover:text-black uppercase tracking-wider font-medium transition-colors"
+                      >
+                        Apply width to all rows
+                      </button>
+                    )}
                   </div>
+
+                  <div className="mt-4">
+                    <span className="text-[10px] text-gray-400 block mb-2">RIGHT COLUMN WIDTH (%)</span>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <input 
+                        type="range" 
+                        className="w-full accent-black" 
+                        min="10" max="90" 
+                        value={styles.rightColumnWidth || 50} 
+                        onChange={(e) => update('rightColumnWidth', parseInt(e.target.value))} 
+                      />
+                      <span className="text-xs text-gray-500 w-8 text-right">{styles.rightColumnWidth || 50}%</span>
+                    </div>
+                    {onUpdateAllStyles && (
+                      <button 
+                        onClick={() => onUpdateAllStyles({ rightColumnWidth: styles.rightColumnWidth || 50 })}
+                        className="text-[10px] text-gray-500 hover:text-black uppercase tracking-wider font-medium transition-colors"
+                      >
+                        Apply width to all rows
+                      </button>
+                    )}
+                  </div>
+
+                  <label className="flex items-center space-x-2 cursor-pointer group mt-4">
+                    <input 
+                      type="checkbox" 
+                      checked={!!styles.showColon}
+                      onChange={(e) => update('showColon', e.target.checked)}
+                      className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-black transition-colors">Show Colon Separator ( : )</span>
+                  </label>
+                  {styles.showColon && (
+                    <div className="mt-3 pl-6 border-l-2 border-gray-100 ml-2">
+                      <span className="text-[10px] text-gray-400 block mb-2">SEPARATOR WIDTH (%)</span>
+                      <div className="flex items-center space-x-3 mb-2">
+                        <input 
+                          type="range" 
+                          className="w-full accent-black" 
+                          min="1" max="30" 
+                          value={styles.colonWidth || 10} 
+                          onChange={(e) => update('colonWidth', parseInt(e.target.value))} 
+                        />
+                        <span className="text-xs text-gray-500 w-8 text-right">{styles.colonWidth || 10}%</span>
+                      </div>
+                    </div>
+                  )}
                   {onUpdateAllStyles && (
                     <button 
-                      onClick={() => onUpdateAllStyles({ columnWidth: styles.columnWidth || 50 })}
-                      className="text-[10px] text-gray-500 hover:text-black uppercase tracking-wider font-medium transition-colors"
+                      onClick={() => onUpdateAllStyles({ showColon: !!styles.showColon, colonWidth: styles.colonWidth || 10 })}
+                      className="text-[10px] text-gray-500 hover:text-black uppercase tracking-wider font-medium transition-colors block mt-2"
                     >
-                      Apply width to all rows
+                      Apply separator to all rows
                     </button>
                   )}
                 </div>

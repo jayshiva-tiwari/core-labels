@@ -25,6 +25,7 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
     if (styles.fontFamily) obj.fontFamily = styles.fontFamily;
     if (styles.fontSize) obj.fontSize = `${styles.fontSize}px`;
     if (styles.color) obj.color = styles.color;
+    if (styles.bold) obj.fontWeight = 'bold';
     return obj;
   };
 
@@ -57,25 +58,25 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
       pad: 'p-8', title: 'text-3xl', sku: 'text-sm', roll: 'text-xs px-2 py-1',
       gap1: 'pb-4 mb-4 border-b-2', barcodePy: 'py-6', barcodeH: 'h-24', sysId: 'text-sm tracking-[0.3em] mt-3',
       gap2: 'pt-4 mt-4', footerLabel: 'text-[10px]', footerVal: 'text-base', qcSize: 'w-12 h-12 text-lg border-2',
-      tabBorder: '6px', tabTitle: 'text-2xl leading-tight', tabText: 'text-xl leading-tight'
+      tabBorder: '2px', tabTitle: 'text-2xl leading-tight', tabText: 'text-xl leading-tight'
     },
     '4x2': {
       pad: 'p-4', title: 'text-xl', sku: 'text-xs', roll: 'text-[10px] px-1.5 py-0.5',
       gap1: 'pb-2 mb-2 border-b-[1.5px]', barcodePy: 'py-2', barcodeH: 'h-10', sysId: 'text-[10px] tracking-[0.2em] mt-1.5',
       gap2: 'pt-2 mt-2', footerLabel: 'text-[8px]', footerVal: 'text-sm', qcSize: 'w-8 h-8 text-xs border-[1.5px]',
-      tabBorder: '4px', tabTitle: 'text-lg leading-tight', tabText: 'text-sm leading-tight'
+      tabBorder: '1px', tabTitle: 'text-lg leading-tight', tabText: 'text-sm leading-tight'
     },
     '2x2': {
       pad: 'p-4', title: 'text-lg', sku: 'text-[10px]', roll: 'text-[8px] px-1.5 py-0.5',
       gap1: 'pb-2 mb-2 border-b-[1.5px]', barcodePy: 'py-2', barcodeH: 'h-12', sysId: 'text-[9px] tracking-[0.2em] mt-2',
       gap2: 'pt-2 mt-2', footerLabel: 'text-[8px]', footerVal: 'text-xs', qcSize: 'w-8 h-8 text-xs border-[1.5px]',
-      tabBorder: '3px', tabTitle: 'text-sm leading-tight', tabText: 'text-xs leading-tight'
+      tabBorder: '1px', tabTitle: 'text-sm leading-tight', tabText: 'text-xs leading-tight'
     },
     '4x6': {
       pad: 'p-8', title: 'text-4xl', sku: 'text-base', roll: 'text-sm px-2 py-1',
       gap1: 'pb-6 mb-6 border-b-2', barcodePy: 'py-8', barcodeH: 'h-32', sysId: 'text-base tracking-[0.3em] mt-4',
       gap2: 'pt-6 mt-6', footerLabel: 'text-[12px]', footerVal: 'text-xl', qcSize: 'w-16 h-16 text-xl border-2',
-      tabBorder: '8px', tabTitle: 'text-4xl leading-tight', tabText: 'text-2xl leading-tight'
+      tabBorder: '2px', tabTitle: 'text-4xl leading-tight', tabText: 'text-2xl leading-tight'
     }
   };
 
@@ -89,7 +90,58 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
     '4x2': { width: '4in', height: '2in' },
   };
 
-  if (template === 'tabular') {
+  const InteractiveBlock: React.FC<{ field?: LabelField; defaultClasses: string; children: React.ReactNode }> = ({ field, defaultClasses, children }) => {
+    if (!field) return <div className={defaultClasses}>{children}</div>;
+    const isSelected = selectedFieldId === field.id;
+    
+    const textStyle = getTextStyleObj(field.styles);
+    const styledChildren = React.Children.map(children, child => {
+      if (React.isValidElement(child)) {
+        return React.cloneElement(child, {
+          // @ts-ignore
+          style: { ...(child.props.style || {}), ...textStyle }
+        });
+      }
+      return child;
+    });
+
+    return (
+      <div 
+        onClick={(e) => { e.stopPropagation(); onSelectField(field.id); }}
+        className={`${defaultClasses} cursor-pointer transition-colors outline-none ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2 rounded' : 'hover:bg-gray-50/50 rounded'}`}
+        style={getStyleObj(field.styles, 'left')}
+      >
+        {styledChildren}
+      </div>
+    );
+  };
+
+  if (template === 'blank') {
+    return (
+      <div 
+        className={`bg-white shadow-2xl rounded-sm p-8 flex flex-col relative transition-all duration-300 ease-in-out ${sizeClasses[size]} mx-auto my-auto overflow-hidden`}
+        style={printDims[size]}
+        id="print-label"
+        onClick={() => onSelectField('')}
+      >
+        <div className="flex-1 w-full flex flex-col gap-3 relative z-10">
+          {fields.length === 0 ? (
+             <div className="absolute inset-0 flex items-center justify-center text-gray-300 pointer-events-none">
+               <span className="text-2xl font-medium tracking-wide">Blank Canvas</span>
+             </div>
+          ) : (
+            fields.map(f => (
+              <InteractiveBlock key={f.id} field={f} defaultClasses="w-full">
+                <FieldContent field={f} className="block w-full" style={getTextStyleObj(f.styles)} />
+              </InteractiveBlock>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (template === 'tabular' || template === 'roll-data') {
     return (
       <div 
         className={`bg-white flex flex-col relative transition-all duration-300 ease-in-out ${sizeClasses[size]} mx-auto my-auto overflow-hidden border-black shadow-2xl rounded-sm`}
@@ -127,7 +179,14 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
                      >
                        <span className={`${c.tabText} font-normal break-words whitespace-pre-wrap block w-full`} style={getTextStyleObj(f.styles)} title={f.label}>{f.label}</span>
                      </div>
-                     <div className="flex-1 min-w-0 flex items-center p-2 " style={getStyleObj(f.styles, 'center')}>
+                     {f.styles?.showColon ? (
+                        <div className={`${f.styles?.rightColumnWidth ? 'flex-1' : 'shrink-0'} flex items-center justify-center border-black`} style={{ width: f.styles?.rightColumnWidth ? undefined : `${f.styles?.colonWidth || 10}%`, borderRightWidth: c.tabBorder }}>
+                          <span className={`${c.tabText} font-bold leading-none`}>:</span>
+                        </div>
+                     ) : (
+                        f.styles?.rightColumnWidth && <div className="flex-1" />
+                     )}
+                     <div className={`${f.styles?.rightColumnWidth ? 'shrink-0' : 'flex-1'} min-w-0 flex items-center p-2 `} style={{ width: f.styles?.rightColumnWidth ? `${f.styles.rightColumnWidth}%` : undefined, borderLeftWidth: f.styles?.rightColumnWidth && !f.styles?.showColon ? c.tabBorder : 0, ...getStyleObj(f.styles, 'center') }}>
                        <FieldContent field={f} className={`${c.tabText} font-normal break-words whitespace-pre-wrap`} style={getTextStyleObj(f.styles)} />
                      </div>
                    </>
@@ -153,31 +212,7 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
   const knownIds = [sysField, rollField, productField, skuField, batchField].filter(Boolean).map(f => f!.id);
   const extraFields = fields.filter(f => !knownIds.includes(f.id));
 
-  const InteractiveBlock: React.FC<{ field?: LabelField; defaultClasses: string; children: React.ReactNode }> = ({ field, defaultClasses, children }) => {
-    if (!field) return <div className={defaultClasses}>{children}</div>;
-    const isSelected = selectedFieldId === field.id;
-    
-    const textStyle = getTextStyleObj(field.styles);
-    const styledChildren = React.Children.map(children, child => {
-      if (React.isValidElement(child)) {
-        return React.cloneElement(child, {
-          // @ts-ignore
-          style: { ...(child.props.style || {}), ...textStyle }
-        });
-      }
-      return child;
-    });
 
-    return (
-      <div 
-        onClick={(e) => { e.stopPropagation(); onSelectField(field.id); }}
-        className={`${defaultClasses} cursor-pointer transition-colors outline-none ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2 rounded' : 'hover:bg-gray-50/50 rounded'}`}
-        style={getStyleObj(field.styles, 'left')}
-      >
-        {styledChildren}
-      </div>
-    );
-  };
 
   return (
     <div 

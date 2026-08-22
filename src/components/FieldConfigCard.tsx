@@ -55,6 +55,13 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
     }
   };
 
+  const handleClearFields = () => {
+    onUpdateFields([]);
+    if (onSelectField) {
+      onSelectField('');
+    }
+  };
+
   const handleAddField = () => {
     const newId = `field-${Date.now()}`;
     const newField: LabelField = {
@@ -142,10 +149,17 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
         })}
       </div>
 
-      <div className="p-5 border-t border-gray-100 bg-gray-50/50">
+      <div className="p-5 border-t border-gray-100 bg-gray-50/50 flex gap-2">
+        <button
+          onClick={handleClearFields}
+          title="Clear Canvas"
+          className="flex items-center justify-center p-2.5 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors shadow-sm"
+        >
+          <Trash2 size={16} />
+        </button>
         <button
           onClick={handleAddField}
-          className="flex items-center justify-center w-full space-x-2 text-sm font-medium text-black bg-white border border-gray-300 rounded-lg py-2.5 hover:bg-gray-50 transition-colors shadow-sm"
+          className="flex-1 flex items-center justify-center space-x-2 text-sm font-medium text-black bg-white border border-gray-300 rounded-lg py-2.5 hover:bg-gray-50 transition-colors shadow-sm"
         >
           <Plus size={16} />
           <span>Add Field</span>
