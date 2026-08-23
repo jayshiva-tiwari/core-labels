@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { TopBar } from './components/TopBar';
 import { LeftTools } from './components/LeftTools';
 import { PropertiesPanel } from './components/PropertiesPanel';
@@ -225,15 +225,17 @@ export default function App() {
     element.style.boxShadow = 'none';
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2, // High resolution
-        useCORS: true,
-        backgroundColor: '#ffffff'
+      const dataUrl = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          boxShadow: 'none'
+        }
       });
       
       const link = document.createElement('a');
       link.download = `label-export-${activeSize}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
     } catch (error) {
       console.error('Export error:', error);
