@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { GripVertical, Plus, Trash2, Lock, Unlock, Edit3 } from 'lucide-react';
 import { LabelField } from '../types';
 
 interface FieldConfigCardProps {
@@ -55,6 +55,37 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
     }
   };
 
+  
+  const handleUnlock = (index, field) => {
+    if (!field.isLocked) return;
+    const pwd = window.prompt('Enter admin password to manually override the roll number:');
+    if (pwd === 'admin123') {
+      const newFields = [...fields];
+      newFields[index] = { ...newFields[index], isLocked: false, readOnly: false };
+      onUpdateFields(newFields);
+    } else if (pwd !== null) {
+      alert('Incorrect password.');
+    }
+  };
+
+  const handleBlurOrEnter = (index, field) => {
+    if (field.isRollNumber && !field.isLocked) {
+      const newFields = [...fields];
+      newFields[index] = { ...newFields[index], isLocked: true, readOnly: true };
+      onUpdateFields(newFields);
+      
+      // Auto-save happens in App.tsx typically, but let's fire a quick save 
+      try {
+        const saved = localStorage.getItem('labelConfig');
+        if (saved) {
+          const config = JSON.parse(saved);
+          // Just let App handle it, or we trigger a change that App sees.
+          // App handles it by updating state, which triggers a re-render. We'd have to save to localstorage in App.
+        }
+      } catch(e) {}
+    }
+  };
+
   const handleClearFields = () => {
     onUpdateFields([]);
     if (onSelectField) {
@@ -87,7 +118,7 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
       
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {fields.map((field, idx) => {
-          const isReadOnly = field.readOnly;
+          const isReadOnly = field.readOnly || field.isLocked;
           const isSelected = selectedFieldId === field.id;
           return (
             <div
@@ -132,9 +163,12 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
                     </button>
                   )}
                 </div>
+                <div className="relative flex items-center">
                 <input
                   type="text"
                   value={field.value}
+                  onBlur={() => handleBlurOrEnter(idx, field)}
+                  onKeyDown={(e) => { if(e.key === 'Enter') handleBlurOrEnter(idx, field); }}
                   onChange={(e) => handleChange(idx, e.target.value)}
                   readOnly={isReadOnly}
                   className={`w-full text-sm p-2.5 rounded-lg outline-none border transition-colors ${
@@ -143,6 +177,16 @@ export function FieldConfigCard({ fields, onUpdateFields, selectedFieldId, onSel
                       : 'bg-white border-gray-300 focus:border-black focus:ring-1 focus:ring-black hover:border-gray-400'
                   }`}
                 />
+                {field.isRollNumber && field.isLocked && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleUnlock(idx, field); }}
+                    className="absolute right-2 text-gray-400 hover:text-black p-1 bg-gray-100 rounded"
+                    title="Unlock to override sequence"
+                  >
+                    <Lock size={14} />
+                  </button>
+                )}
+                </div>
               </div>
             </div>
           );

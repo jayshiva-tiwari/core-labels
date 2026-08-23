@@ -14,7 +14,7 @@ import { LabelSize, LabelField, LabelTemplate, LabelStyle } from './types';
 
 const INITIAL_STANDARD_FIELDS: LabelField[] = [
   { id: '1', label: 'System ID', value: 'SYS-8092X', readOnly: true },
-  { id: '2', label: 'Roll Number', value: 'RL-1002', reorderable: true },
+  { id: '2', label: 'Roll Number', value: 'E01080-26-A-01', reorderable: true, isRollNumber: true, isLocked: true, readOnly: true },
   { id: '3', label: 'Product Name', value: 'Industrial Widget', reorderable: true },
   { id: '4', label: 'SKU', value: 'SKU-77XQ9', reorderable: true },
   { id: '5', label: 'Batch Number', value: 'BN-9001-A', reorderable: true },
@@ -24,7 +24,7 @@ const INITIAL_TABULAR_FIELDS: LabelField[] = [
   { id: 't1', label: 'Product', value: 'PP Non-woven Needle punch\nFabric Uncalendared', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
   { id: 't2', label: 'Colour', value: '902 GREY', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
   { id: 't3', label: 'Lot no', value: 'NP26/08/02', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
-  { id: 't4', label: 'Roll no', value: 'E01080-26-H-19', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
+  { id: 't4', label: 'Roll no', value: 'E01080-26-A-01', reorderable: true, isRollNumber: true, isLocked: true, readOnly: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
   { id: 't5', label: 'width', value: '4.30 M', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
   { id: 't6', label: 'GSM', value: '140.0', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
   { id: 't7', label: 'Length', value: '200', reorderable: true, styles: { showColon: true, columnWidth: 35, textAlign: 'center' } },
@@ -35,7 +35,7 @@ const INITIAL_TABULAR_FIELDS: LabelField[] = [
 const INITIAL_ROLL_DATA_FIELDS: LabelField[] = [
   { id: 'rd1', label: '', value: 'ROLL DATA', reorderable: true, styles: { fullWidth: true, textAlign: 'center', bold: true, fontSize: 16 } },
   { id: 'rd2', label: 'Product code', value: 'FLOOR PRODUCTION', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
-  { id: 'rd3', label: 'Roll No', value: 'sample-11', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
+  { id: 'rd3', label: 'Roll No', value: 'E01080-26-A-01', reorderable: true, isRollNumber: true, isLocked: true, readOnly: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
   { id: 'rd4', label: 'COLOUR', value: 'PET-GREY', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
   { id: 'rd5', label: 'WIDHT (M)', value: '1.4', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
   { id: 'rd6', label: 'LENGTH-MTR', value: '346', reorderable: true, styles: { columnWidth: 45, textAlign: 'center', bold: true } },
@@ -62,12 +62,24 @@ export default function App() {
     if (saved) {
       try {
         const config = JSON.parse(saved);
+        
+        const migrateFields = (fields) => {
+          if (!fields) return fields;
+          return fields.map(f => {
+            if (f.id === '2' || f.id === 't4' || f.id === 'rd3') {
+              return { ...f, isRollNumber: true, isLocked: true, readOnly: true };
+            }
+            return f;
+          });
+        };
+        
         if (config.activeSize) setActiveSize(config.activeSize);
         if (config.activeTemplate) setActiveTemplate(config.activeTemplate);
-        if (config.standardFields) setStandardFields(config.standardFields);
-        if (config.tabularFields) setTabularFields(config.tabularFields);
-        if (config.rollDataFields) setRollDataFields(config.rollDataFields);
+        if (config.standardFields) setStandardFields(migrateFields(config.standardFields));
+        if (config.tabularFields) setTabularFields(migrateFields(config.tabularFields));
+        if (config.rollDataFields) setRollDataFields(migrateFields(config.rollDataFields));
         if (config.blankFields) setBlankFields(config.blankFields);
+
       } catch (e) {
         console.error('Failed to load saved config', e);
       }
@@ -75,6 +87,25 @@ export default function App() {
   }, []);
 
 
+  
+  useEffect(() => {
+    try {
+      const config = {
+        activeSize,
+        activeTemplate,
+        standardFields,
+        tabularFields,
+        rollDataFields,
+        blankFields
+      };
+      // only save if they are populated (prevents overwriting on initial mount if state is empty)
+      if (standardFields.length > 0) {
+        localStorage.setItem('labelConfig', JSON.stringify(config));
+      }
+    } catch(e) {}
+  }, [activeSize, activeTemplate, standardFields, tabularFields, rollDataFields, blankFields]);
+
+  // Auto-save happens here now
   const currentFields = activeTemplate === 'standard' ? standardFields : activeTemplate === 'tabular' ? tabularFields : activeTemplate === 'roll-data' ? rollDataFields : blankFields;
   const setCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
   const activeField = currentFields.find(f => f.id === selectedFieldId);
@@ -123,6 +154,47 @@ export default function App() {
   };
 
   
+  
+  const handlePrint = () => {
+    window.print();
+    
+    // Auto-increment logic
+    const incrementValue = (val) => {
+      const match = val.match(/(.*?)(\d+)$/);
+      if (match) {
+        const prefix = match[1];
+        const numStr = match[2];
+        const nextNum = String(parseInt(numStr, 10) + 1).padStart(numStr.length, '0');
+        return prefix + nextNum;
+      }
+      return val;
+    };
+
+    const updateFields = (fields) => 
+      fields.map(f => f.isRollNumber ? { ...f, value: incrementValue(f.value) } : f);
+
+    const newStandard = updateFields(standardFields);
+    const newTabular = updateFields(tabularFields);
+    const newRollData = updateFields(rollDataFields);
+
+    setStandardFields(newStandard);
+    setTabularFields(newTabular);
+    setRollDataFields(newRollData);
+    
+    // Save to local storage automatically after increment
+    try {
+      const config = {
+        activeSize,
+        activeTemplate,
+        standardFields: newStandard,
+        tabularFields: newTabular,
+        rollDataFields: newRollData,
+        blankFields
+      };
+      localStorage.setItem('labelConfig', JSON.stringify(config));
+    } catch(e) {}
+  };
+
   const handleSave = () => {
     try {
       const config = {
@@ -179,7 +251,7 @@ export default function App() {
         onSizeChange={setActiveSize} 
         activeTemplate={activeTemplate}
         onTemplateChange={setActiveTemplate}
-        onPrint={() => window.print()}
+        onPrint={handlePrint}
         onSave={handleSave}
         onExport={handleExport}
       />
