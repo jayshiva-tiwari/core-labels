@@ -16,7 +16,8 @@ export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateCha
     <div className="flex flex-col w-full border-b border-gray-200 bg-white z-20 shadow-sm relative">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Label Configuration</h1>
+        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Labels Core</h1>
+        <p>By: JS. Tiwari</p>
         <div className="flex items-center space-x-3">
           <button onClick={onSave} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
             Save
@@ -38,11 +39,10 @@ export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateCha
               <button
                 key={size}
                 onClick={() => onSizeChange(size)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  activeSize === size
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeSize === size
                     ? 'bg-white text-black shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 {size}
               </button>
@@ -57,11 +57,10 @@ export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateCha
               <button
                 key={tmpl}
                 onClick={() => onTemplateChange(tmpl)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all capitalize ${
-                  activeTemplate === tmpl
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all capitalize ${activeTemplate === tmpl
                     ? 'bg-white text-black shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 {tmpl.replace('-', ' ')}
               </button>
