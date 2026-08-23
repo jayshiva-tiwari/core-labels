@@ -24,6 +24,8 @@ export interface LabelField {
   type?: 'text' | 'shape' | 'image' | 'barcode';
   readOnly?: boolean;
   reorderable?: boolean;
+  isRollNumber?: boolean;
+  isLocked?: boolean;
   styles?: LabelStyle;
 }
 
