@@ -15,7 +15,7 @@ interface LeftToolsProps {
 
 export function LeftTools({ onAddTool }: LeftToolsProps) {
   return (
-    <div className="w-24 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center py-6 space-y-6 z-10 shadow-sm relative">
+    <div className="w-24 flex-shrink-0 h-full bg-white border-r border-gray-200 flex flex-col items-center py-6 space-y-6 z-10 shadow-sm relative overflow-y-auto">
       {tools.map((tool) => (
         <button
           key={tool.label}

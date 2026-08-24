@@ -259,7 +259,7 @@ export default function App() {
       /></div>
       
       <div className="flex flex-1 overflow-hidden relative print:block print:w-full print:h-full print:m-0 print:p-0">
-        <div className="print:hidden"><LeftTools onAddTool={handleAddToolElement} /></div>
+        <div className="print:hidden h-full flex flex-col"><LeftTools onAddTool={handleAddToolElement} /></div>
         
         <div className="flex-1 relative bg-grid-pattern overflow-auto print:overflow-visible print:bg-none print:w-full print:h-full">
           <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center print:static print:block print:p-0 print:m-0 print:min-w-0 print:min-h-0">
@@ -286,7 +286,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="print:hidden"><PropertiesPanel 
+        <div className="print:hidden h-full flex flex-col"><PropertiesPanel 
           activeField={activeField} 
           onUpdateStyle={handleUpdateStyle}
           onUpdateAllStyles={handleUpdateAllStyles}
