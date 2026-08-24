@@ -248,7 +248,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F3F4F6] text-gray-900 font-sans overflow-hidden">
-      <TopBar 
+      <div className="print:hidden"><TopBar 
         activeSize={activeSize} 
         onSizeChange={setActiveSize} 
         activeTemplate={activeTemplate}
@@ -256,13 +256,13 @@ export default function App() {
         onPrint={handlePrint}
         onSave={handleSave}
         onExport={handleExport}
-      />
+      /></div>
       
-      <div className="flex flex-1 overflow-hidden relative">
-        <LeftTools onAddTool={handleAddToolElement} />
+      <div className="flex flex-1 overflow-hidden relative print:block print:w-full print:h-full print:m-0 print:p-0">
+        <div className="print:hidden"><LeftTools onAddTool={handleAddToolElement} /></div>
         
-        <div className="flex-1 relative bg-grid-pattern overflow-auto">
-          <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center">
+        <div className="flex-1 relative bg-grid-pattern overflow-auto print:overflow-visible print:bg-none print:w-full print:h-full">
+          <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center print:static print:block print:p-0 print:m-0 print:min-w-0 print:min-h-0">
             {/* Left Floating Card */}
             <div className="z-10 flex-shrink-0 ml-4 print:hidden">
               <FieldConfigCard 
@@ -274,7 +274,7 @@ export default function App() {
             </div>
             
             {/* Center Canvas Area */}
-            <div className="flex-1 flex items-center justify-center pr-12" id="print-area">
+            <div className="flex-1 flex items-center justify-center pr-12 print:pr-0 print:block" id="print-area">
               <LabelMockup 
                 fields={currentFields} 
                 size={activeSize} 
@@ -286,13 +286,13 @@ export default function App() {
           </div>
         </div>
 
-        <PropertiesPanel 
+        <div className="print:hidden"><PropertiesPanel 
           activeField={activeField} 
           onUpdateStyle={handleUpdateStyle}
           onUpdateAllStyles={handleUpdateAllStyles}
           onDeleteField={handleDeleteField}
           activeTemplate={activeTemplate}
-        />
+        /></div>
       </div>
     </div>
   );

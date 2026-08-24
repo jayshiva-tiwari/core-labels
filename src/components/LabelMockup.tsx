@@ -29,6 +29,17 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
     return obj;
   };
 
+
+  const [pageW, pageH] = size.split('x');
+  const printStyle = `
+    @media print {
+      @page {
+        size: ${pageW}in ${pageH}in;
+        margin: 0;
+      }
+    }
+  `;
+
   const getStyleObj = (styles?: LabelStyle, defaultAlign?: 'left'|'center'|'right'|'justify') => {
     const obj: React.CSSProperties = {
       textAlign: styles?.textAlign || defaultAlign,
@@ -118,6 +129,8 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
 
   if (template === 'blank') {
     return (
+      <>
+      <style>{printStyle}</style>
       <div 
         className={`bg-white shadow-2xl rounded-sm p-8 flex flex-col relative transition-all duration-300 ease-in-out ${sizeClasses[size]} mx-auto my-auto overflow-hidden`}
         style={printDims[size]}
@@ -138,11 +151,14 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
           )}
         </div>
       </div>
+      </>
     );
   }
 
   if (template === 'tabular' || template === 'roll-data') {
     return (
+      <>
+      <style>{printStyle}</style>
       <div 
         className={`bg-white flex flex-col relative transition-all duration-300 ease-in-out ${sizeClasses[size]} mx-auto my-auto overflow-hidden border-black shadow-2xl rounded-sm`}
         style={{ borderWidth: c.tabBorder, ...printDims[size] }}
@@ -196,6 +212,7 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
            })}
          </div>
       </div>
+      </>
     );
   }
 
@@ -215,6 +232,8 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
 
 
   return (
+    <>
+    <style>{printStyle}</style>
     <div 
       className={`bg-white shadow-2xl rounded-sm ${c.pad} flex flex-col border border-gray-300 relative transition-all duration-300 ease-in-out ${sizeClasses[size]} mx-auto my-auto overflow-hidden `}
       style={printDims[size]}
@@ -284,5 +303,6 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
         </div>
       </div>
     </div>
+    </>
   );
 }
