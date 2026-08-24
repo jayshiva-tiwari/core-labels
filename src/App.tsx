@@ -107,7 +107,27 @@ export default function App() {
 
   // Auto-save happens here now
   const currentFields = activeTemplate === 'standard' ? standardFields : activeTemplate === 'tabular' ? tabularFields : activeTemplate === 'roll-data' ? rollDataFields : blankFields;
-  const setCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
+  const updateCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
+  const setCurrentFields = (newFieldsOrUpdater: any) => {
+    // If it's a function updater (which might happen depending on how it's called, though mostly we pass arrays)
+    let newFields = newFieldsOrUpdater;
+    if (typeof newFieldsOrUpdater === 'function') {
+      newFields = newFieldsOrUpdater(currentFields);
+    }
+    updateCurrentFields(newFields);
+    
+    // Sync roll number
+    if (Array.isArray(newFields)) {
+      const rollField = newFields.find(f => f.isRollNumber);
+      if (rollField) {
+        const updateFn = (fields: LabelField[]) => fields.map(f => f.isRollNumber ? { ...f, value: rollField.value, isLocked: rollField.isLocked, readOnly: rollField.readOnly } : f);
+        if (activeTemplate !== 'standard') setStandardFields(prev => updateFn(prev));
+        if (activeTemplate !== 'tabular') setTabularFields(prev => updateFn(prev));
+        if (activeTemplate !== 'roll-data') setRollDataFields(prev => updateFn(prev));
+        if (activeTemplate !== 'blank') setBlankFields(prev => updateFn(prev));
+      }
+    }
+  };
   const activeField = currentFields.find(f => f.id === selectedFieldId);
 
   const handleUpdateStyle = (id: string, styleUpdates: Partial<LabelStyle>) => {
@@ -141,13 +161,21 @@ export default function App() {
                       type === 'Images' ? 'image' :
                       type === 'Barcodes' ? 'barcode' : 'text';
 
+    const baseStyles: LabelStyle = { fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center' };
+    let templateStyles = {};
+    if (activeTemplate === 'tabular') {
+      templateStyles = { showColon: true, columnWidth: 35 };
+    } else if (activeTemplate === 'roll-data') {
+      templateStyles = { columnWidth: 45, bold: true };
+    }
+
     const newField: LabelField = {
       id: `tool-${Date.now()}`,
       label: `New ${type}`,
       value: type === 'Text' ? `Custom Text` : type === 'Barcodes' ? '123456789' : '',
       type: fieldType,
       reorderable: true,
-      styles: { fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center' }
+      styles: { ...baseStyles, ...templateStyles }
     };
     setCurrentFields([...currentFields, newField]);
     setSelectedFieldId(newField.id);
