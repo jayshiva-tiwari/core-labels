@@ -56,6 +56,7 @@ export default function App() {
   const [rollDataFields, setRollDataFields] = useState<LabelField[]>(INITIAL_ROLL_DATA_FIELDS);
   const [blankFields, setBlankFields] = useState<LabelField[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('labelConfig');
@@ -84,11 +85,13 @@ export default function App() {
         console.error('Failed to load saved config', e);
       }
     }
+    setIsLoaded(true);
   }, []);
 
 
   
   useEffect(() => {
+    if (!isLoaded) return;
     try {
       const config = {
         activeSize,
