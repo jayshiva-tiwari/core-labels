@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { TopBar } from './components/TopBar';
 import { LeftTools } from './components/LeftTools';
 import { PropertiesPanel } from './components/PropertiesPanel';
@@ -56,6 +56,7 @@ export default function App() {
   const [rollDataFields, setRollDataFields] = useState<LabelField[]>(INITIAL_ROLL_DATA_FIELDS);
   const [blankFields, setBlankFields] = useState<LabelField[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('labelConfig');
@@ -84,11 +85,13 @@ export default function App() {
         console.error('Failed to load saved config', e);
       }
     }
+    setIsLoaded(true);
   }, []);
 
 
   
   useEffect(() => {
+    if (!isLoaded) return;
     try {
       const config = {
         activeSize,
@@ -107,7 +110,27 @@ export default function App() {
 
   // Auto-save happens here now
   const currentFields = activeTemplate === 'standard' ? standardFields : activeTemplate === 'tabular' ? tabularFields : activeTemplate === 'roll-data' ? rollDataFields : blankFields;
-  const setCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
+  const updateCurrentFields = activeTemplate === 'standard' ? setStandardFields : activeTemplate === 'tabular' ? setTabularFields : activeTemplate === 'roll-data' ? setRollDataFields : setBlankFields;
+  const setCurrentFields = (newFieldsOrUpdater: any) => {
+    // If it's a function updater (which might happen depending on how it's called, though mostly we pass arrays)
+    let newFields = newFieldsOrUpdater;
+    if (typeof newFieldsOrUpdater === 'function') {
+      newFields = newFieldsOrUpdater(currentFields);
+    }
+    updateCurrentFields(newFields);
+    
+    // Sync roll number
+    if (Array.isArray(newFields)) {
+      const rollField = newFields.find(f => f.isRollNumber);
+      if (rollField) {
+        const updateFn = (fields: LabelField[]) => fields.map(f => f.isRollNumber ? { ...f, value: rollField.value, isLocked: rollField.isLocked, readOnly: rollField.readOnly } : f);
+        if (activeTemplate !== 'standard') setStandardFields(prev => updateFn(prev));
+        if (activeTemplate !== 'tabular') setTabularFields(prev => updateFn(prev));
+        if (activeTemplate !== 'roll-data') setRollDataFields(prev => updateFn(prev));
+        if (activeTemplate !== 'blank') setBlankFields(prev => updateFn(prev));
+      }
+    }
+  };
   const activeField = currentFields.find(f => f.id === selectedFieldId);
 
   const handleUpdateStyle = (id: string, styleUpdates: Partial<LabelStyle>) => {
@@ -141,13 +164,21 @@ export default function App() {
                       type === 'Images' ? 'image' :
                       type === 'Barcodes' ? 'barcode' : 'text';
 
+    const baseStyles: LabelStyle = { fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center' };
+    let templateStyles = {};
+    if (activeTemplate === 'tabular') {
+      templateStyles = { showColon: true, columnWidth: 35 };
+    } else if (activeTemplate === 'roll-data') {
+      templateStyles = { columnWidth: 45, bold: true };
+    }
+
     const newField: LabelField = {
       id: `tool-${Date.now()}`,
       label: `New ${type}`,
       value: type === 'Text' ? `Custom Text` : type === 'Barcodes' ? '123456789' : '',
       type: fieldType,
       reorderable: true,
-      styles: { fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center' }
+      styles: { ...baseStyles, ...templateStyles }
     };
     setCurrentFields([...currentFields, newField]);
     setSelectedFieldId(newField.id);
@@ -195,6 +226,17 @@ export default function App() {
     } catch(e) {}
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        handlePrint();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrint]);
+
   const handleSave = () => {
     try {
       const config = {
@@ -225,15 +267,17 @@ export default function App() {
     element.style.boxShadow = 'none';
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2, // High resolution
-        useCORS: true,
-        backgroundColor: '#ffffff'
+      const dataUrl = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          boxShadow: 'none'
+        }
       });
       
       const link = document.createElement('a');
       link.download = `label-export-${activeSize}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
     } catch (error) {
       console.error('Export error:', error);
@@ -246,7 +290,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F3F4F6] text-gray-900 font-sans overflow-hidden">
-      <TopBar 
+      <div className="print:hidden"><TopBar 
         activeSize={activeSize} 
         onSizeChange={setActiveSize} 
         activeTemplate={activeTemplate}
@@ -254,13 +298,13 @@ export default function App() {
         onPrint={handlePrint}
         onSave={handleSave}
         onExport={handleExport}
-      />
+      /></div>
       
-      <div className="flex flex-1 overflow-hidden relative">
-        <LeftTools onAddTool={handleAddToolElement} />
+      <div className="flex flex-1 overflow-hidden relative print:block print:w-full print:h-full print:m-0 print:p-0">
+        <div className="print:hidden h-full flex flex-col"><LeftTools onAddTool={handleAddToolElement} /></div>
         
-        <div className="flex-1 relative bg-grid-pattern overflow-auto">
-          <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center">
+        <div className="flex-1 relative bg-grid-pattern overflow-auto print:overflow-visible print:bg-none print:w-full print:h-full">
+          <div className="absolute inset-0 flex p-8 gap-12 min-w-[900px] min-h-[600px] items-center print:static print:block print:p-0 print:m-0 print:min-w-0 print:min-h-0">
             {/* Left Floating Card */}
             <div className="z-10 flex-shrink-0 ml-4 print:hidden">
               <FieldConfigCard 
@@ -272,7 +316,7 @@ export default function App() {
             </div>
             
             {/* Center Canvas Area */}
-            <div className="flex-1 flex items-center justify-center pr-12" id="print-area">
+            <div className="flex-1 flex items-center justify-center pr-12 print:pr-0 print:block" id="print-area">
               <LabelMockup 
                 fields={currentFields} 
                 size={activeSize} 
@@ -284,13 +328,13 @@ export default function App() {
           </div>
         </div>
 
-        <PropertiesPanel 
+        <div className="print:hidden h-full flex flex-col"><PropertiesPanel 
           activeField={activeField} 
           onUpdateStyle={handleUpdateStyle}
           onUpdateAllStyles={handleUpdateAllStyles}
           onDeleteField={handleDeleteField}
           activeTemplate={activeTemplate}
-        />
+        /></div>
       </div>
     </div>
   );

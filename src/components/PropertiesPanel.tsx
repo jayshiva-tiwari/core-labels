@@ -21,7 +21,7 @@ export function PropertiesPanel({ activeField, onUpdateStyle, onUpdateAllStyles,
   };
 
   return (
-    <div className="w-72 flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto z-10 shadow-sm relative flex flex-col justify-between">
+    <div className="w-72 flex-shrink-0 h-full bg-white border-l border-gray-200 overflow-y-auto z-10 shadow-sm relative flex flex-col justify-between">
       <div>
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Properties</h2>
