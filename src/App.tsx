@@ -189,41 +189,46 @@ export default function App() {
   const handlePrint = () => {
     window.print();
     
-    // Auto-increment logic
-    const incrementValue = (val) => {
-      const match = val.match(/(.*?)(\d+)$/);
-      if (match) {
-        const prefix = match[1];
-        const numStr = match[2];
-        const nextNum = String(parseInt(numStr, 10) + 1).padStart(numStr.length, '0');
-        return prefix + nextNum;
-      }
-      return val;
-    };
-
-    const updateFields = (fields) => 
-      fields.map(f => f.isRollNumber ? { ...f, value: incrementValue(f.value) } : f);
-
-    const newStandard = updateFields(standardFields);
-    const newTabular = updateFields(tabularFields);
-    const newRollData = updateFields(rollDataFields);
-
-    setStandardFields(newStandard);
-    setTabularFields(newTabular);
-    setRollDataFields(newRollData);
-    
-    // Save to local storage automatically after increment
-    try {
-      const config = {
-        activeSize,
-        activeTemplate,
-        standardFields: newStandard,
-        tabularFields: newTabular,
-        rollDataFields: newRollData,
-        blankFields
+    setTimeout(() => {
+      const didPrint = window.confirm("Did the label print successfully?\n\nClick OK to automatically increment the roll number.");
+      if (!didPrint) return;
+  
+      // Auto-increment logic
+      const incrementValue = (val) => {
+        const match = val.match(/(.*?)(\d+)$/);
+        if (match) {
+          const prefix = match[1];
+          const numStr = match[2];
+          const nextNum = String(parseInt(numStr, 10) + 1).padStart(numStr.length, '0');
+          return prefix + nextNum;
+        }
+        return val;
       };
-      localStorage.setItem('labelConfig', JSON.stringify(config));
-    } catch(e) {}
+  
+      const updateFields = (fields) => 
+        fields.map(f => f.isRollNumber ? { ...f, value: incrementValue(f.value) } : f);
+  
+      const newStandard = updateFields(standardFields);
+      const newTabular = updateFields(tabularFields);
+      const newRollData = updateFields(rollDataFields);
+  
+      setStandardFields(newStandard);
+      setTabularFields(newTabular);
+      setRollDataFields(newRollData);
+      
+      // Save to local storage automatically after increment
+      try {
+        const config = {
+          activeSize,
+          activeTemplate,
+          standardFields: newStandard,
+          tabularFields: newTabular,
+          rollDataFields: newRollData,
+          blankFields
+        };
+        localStorage.setItem('labelConfig', JSON.stringify(config));
+      } catch(e) {}
+    }, 500);
   };
 
   useEffect(() => {
