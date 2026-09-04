@@ -40,13 +40,14 @@ export function LabelMockup({ printRotated, fields, size, template, selectedFiel
       }
       #print-label {
         ${printRotated ? `
-          position: absolute !important;
-          top: 50% !important;
-          left: 50% !important;
-          transform: translate(-50%, -50%) rotate(90deg) !important;
+          position: fixed !important;
+          top: ${(parseFloat(pageW) - parseFloat(pageH)) / 2}in !important;
+          left: ${(parseFloat(pageH) - parseFloat(pageW)) / 2}in !important;
+          transform-origin: center center !important;
+          transform: rotate(90deg) !important;
           margin: 0 !important;
         ` : `
-          position: absolute !important;
+          position: fixed !important;
           top: 0 !important;
           left: 0 !important;
           margin: 0 !important;

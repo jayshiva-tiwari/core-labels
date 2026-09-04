@@ -22,9 +22,5 @@ body {
   
   #print-label {
     box-shadow: none !important;
-    margin: 0 !important;
-    position: absolute !important;
-    
-    
   }
 }
