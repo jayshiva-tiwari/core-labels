@@ -291,7 +291,9 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F3F4F6] text-gray-900 font-sans overflow-hidden">
-      <div className="print:hidden"><TopBar 
+      <div className="print:hidden"><TopBar
+        printRotated={printRotated}
+        onRotateToggle={() => setPrintRotated(!printRotated)}
         activeSize={activeSize} 
         onSizeChange={setActiveSize} 
         activeTemplate={activeTemplate}
