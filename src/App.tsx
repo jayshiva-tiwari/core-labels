@@ -56,6 +56,7 @@ export default function App() {
   const [rollDataFields, setRollDataFields] = useState<LabelField[]>(INITIAL_ROLL_DATA_FIELDS);
   const [blankFields, setBlankFields] = useState<LabelField[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [printRotated, setPrintRotated] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -318,6 +319,7 @@ export default function App() {
             {/* Center Canvas Area */}
             <div className="flex-1 flex items-center justify-center pr-12 print:pr-0 print:block" id="print-area">
               <LabelMockup 
+                printRotated={printRotated}
                 fields={currentFields} 
                 size={activeSize} 
                 template={activeTemplate}

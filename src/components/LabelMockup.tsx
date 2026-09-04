@@ -3,6 +3,7 @@ import { LabelField, LabelSize, LabelTemplate, LabelStyle } from '../types';
 import { FieldContent } from './FieldContent';
 
 interface LabelMockupProps {
+  printRotated?: boolean;
   fields: LabelField[];
   size: LabelSize;
   template: LabelTemplate;
@@ -10,7 +11,7 @@ interface LabelMockupProps {
   onSelectField: (id: string) => void;
 }
 
-export function LabelMockup({ fields, size, template, selectedFieldId, onSelectField }: LabelMockupProps) {
+export function LabelMockup({ printRotated, fields, size, template, selectedFieldId, onSelectField }: LabelMockupProps) {
   // Dimensions based on size selection
   const sizeClasses = {
     '4x4': 'w-[400px] h-[400px]',
@@ -31,11 +32,25 @@ export function LabelMockup({ fields, size, template, selectedFieldId, onSelectF
 
 
   const [pageW, pageH] = size.split('x');
-  const printStyle = `
+    const printStyle = `
     @media print {
       @page {
-        size: ${pageW}in ${pageH}in;
+        size: ${printRotated ? `${pageH}in ${pageW}in` : `${pageW}in ${pageH}in`};
         margin: 0;
+      }
+      #print-label {
+        ${printRotated ? `
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) rotate(90deg) !important;
+          margin: 0 !important;
+        ` : `
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          margin: 0 !important;
+        `}
       }
     }
   `;

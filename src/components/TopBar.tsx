@@ -2,6 +2,8 @@ import React from 'react';
 import { LabelSize, LabelTemplate } from '../types';
 
 interface TopBarProps {
+  printRotated?: boolean;
+  onRotateToggle?: () => void;
   activeSize: LabelSize;
   onSizeChange: (size: LabelSize) => void;
   activeTemplate: LabelTemplate;
@@ -11,7 +13,7 @@ interface TopBarProps {
   onExport: () => void;
 }
 
-export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateChange, onPrint, onSave, onExport }: TopBarProps) {
+export function TopBar({ printRotated, onRotateToggle, activeSize, onSizeChange, activeTemplate, onTemplateChange, onPrint, onSave, onExport }: TopBarProps) {
   return (
     <div className="flex flex-col w-full border-b border-gray-200 bg-white z-20 shadow-sm relative">
       {/* Header */}
@@ -21,6 +23,9 @@ export function TopBar({ activeSize, onSizeChange, activeTemplate, onTemplateCha
           <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mt-1 block">BY : JS. Tiwari</span>
         </div>
         <div className="flex items-center space-x-3">
+          <button onClick={onRotateToggle} className={`px-4 py-2 text-sm font-medium border rounded-md transition-colors ${printRotated ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+            {printRotated ? 'Rotated 90°' : 'Print Normal'}
+          </button>
           <button onClick={onSave} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
             Save
           </button>
